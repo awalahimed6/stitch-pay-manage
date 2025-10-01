@@ -42,6 +42,9 @@ export default function UserOrderDetail() {
   const [loading, setLoading] = useState(true);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     fetchOrderDetails();
@@ -73,8 +76,18 @@ export default function UserOrderDetail() {
 
       if (paymentsError) throw paymentsError;
 
+      // Load user profile data for payment form
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", user.id)
+        .single();
+
       setOrder(orderData);
       setPayments(paymentsData || []);
+      setFullName(profile?.full_name || orderData.customer_name);
+      setEmail(user.email || "");
+      setPhone(profile?.phone || orderData.phone);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -92,6 +105,15 @@ export default function UserOrderDetail() {
       toast({
         title: "Error",
         description: "Please enter a valid payment amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!fullName || !email || !phone) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -118,20 +140,13 @@ export default function UserOrderDetail() {
     setProcessingPayment(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, phone")
-        .eq("id", user!.id)
-        .single();
-
       const { data, error } = await supabase.functions.invoke('chapa-payment', {
         body: {
           orderId: order.id,
           amount: Number(paymentAmount),
-          email: user!.email,
-          fullName: profile?.full_name || order.customer_name,
-          phone: profile?.phone || order.phone,
+          email: email,
+          fullName: fullName,
+          phone: phone,
         },
       });
 
@@ -260,19 +275,56 @@ export default function UserOrderDetail() {
                   <CardDescription>Pay using Chapa payment gateway</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Payment Amount (ETB)</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      placeholder="Enter amount"
-                      value={paymentAmount}
-                      onChange={(e) => setPaymentAmount(e.target.value)}
-                      max={order.remaining_balance}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Maximum: ETB {Number(order.remaining_balance).toFixed(2)}
-                    </p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Full Name</Label>
+                      <Input
+                        id="fullName"
+                        type="text"
+                        placeholder="Enter full name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="09xxxxxxxx or 07xxxxxxxx"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Format: 09xxxxxxxx or 07xxxxxxxx
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="amount">Payment Amount (ETB)</Label>
+                      <Input
+                        id="amount"
+                        type="number"
+                        placeholder="Enter amount"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        max={order.remaining_balance}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Maximum: ETB {Number(order.remaining_balance).toFixed(2)}
+                      </p>
+                    </div>
                   </div>
                   <Button
                     onClick={handlePayment}
