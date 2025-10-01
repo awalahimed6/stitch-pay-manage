@@ -12,7 +12,7 @@ import OrderDetail from "./pages/OrderDetail";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import UserAuth from "./pages/UserAuth";
+
 import UserDashboard from "./pages/UserDashboard";
 import UserOrderDetail from "./pages/UserOrderDetail";
 
@@ -45,7 +45,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Navigate to="/user/auth" replace />} />
+            <Route path="/" element={<Auth />} />
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/dashboard"
@@ -89,7 +89,6 @@ const App = () => (
             />
             
             {/* User routes */}
-            <Route path="/user/auth" element={<UserAuth />} />
             <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/user/orders/:id" element={<UserOrderDetail />} />
             
