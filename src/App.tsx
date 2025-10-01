@@ -12,6 +12,10 @@ import OrderDetail from "./pages/OrderDetail";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import UserAuth from "./pages/UserAuth";
+import UserDashboard from "./pages/UserDashboard";
+import UserOrderDetail from "./pages/UserOrderDetail";
+import CustomerLanding from "./pages/CustomerLanding";
 
 const queryClient = new QueryClient();
 
@@ -41,9 +45,10 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/" element={<CustomerLanding />} />
             <Route path="/auth" element={<Auth />} />
             <Route
-              path="/"
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -82,6 +87,12 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            
+            {/* User routes */}
+            <Route path="/user/auth" element={<UserAuth />} />
+            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/user/orders/:id" element={<UserOrderDetail />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
