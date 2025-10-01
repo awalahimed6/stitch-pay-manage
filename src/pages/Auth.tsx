@@ -69,7 +69,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (isLogin || activeTab === "admin") {
         // Login
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -126,15 +126,15 @@ export default function Auth() {
 
         if (error) throw error;
 
-        // Assign role based on active tab
+        // Assign role based on active tab (staff or customer only in signup)
         if (data.user) {
-          const assignedRole = activeTab === "admin" ? "admin" : activeTab === "staff" ? "staff" : "customer";
+          const assignedRole = activeTab === "staff" ? "staff" : "customer";
           
           await supabase
             .from("user_roles")
             .insert({
               user_id: data.user.id,
-              role: assignedRole as "admin" | "staff" | "customer" | "guard",
+              role: assignedRole,
             });
         }
 
@@ -190,31 +190,39 @@ export default function Auth() {
           </Tabs>
 
           {/* Login/Signup Toggle */}
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex rounded-lg border p-1">
-              <button
-                type="button"
-                onClick={() => setIsLogin(true)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isLogin ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                }`}
-              >
-                Login
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsLogin(false)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  !isLogin ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                }`}
-              >
-                Sign Up
-              </button>
+          {activeTab !== "admin" && (
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex rounded-lg border p-1">
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(true)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isLogin ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  }`}
+                >
+                  Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(false)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    !isLogin ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  }`}
+                >
+                  Sign Up
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+          
+          {activeTab === "admin" && (
+            <div className="text-center mb-6">
+              <p className="text-sm text-muted-foreground">Admin Login Only</p>
+            </div>
+          )}
 
           <form onSubmit={handleAuth} className="space-y-4">
-            {!isLogin && (
+            {!isLogin && activeTab !== "admin" && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
@@ -262,7 +270,7 @@ export default function Auth() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
+              {loading ? "Please wait..." : (isLogin || activeTab === "admin") ? "Sign In" : "Create Account"}
             </Button>
           </form>
         </CardContent>
