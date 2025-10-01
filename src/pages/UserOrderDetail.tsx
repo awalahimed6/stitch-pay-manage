@@ -106,6 +106,15 @@ export default function UserOrderDetail() {
       return;
     }
 
+    if (Number(order.total_price) <= 0) {
+      toast({
+        title: "Error",
+        description: "Order price has not been set yet. Please wait for staff to confirm pricing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setProcessingPayment(true);
 
     try {
@@ -126,15 +135,26 @@ export default function UserOrderDetail() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Payment function error:', error);
+        throw new Error(error.message || 'Failed to initialize payment');
+      }
 
-      if (data.checkoutUrl) {
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (data?.checkoutUrl) {
+        // Redirect to Chapa checkout
         window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error('No checkout URL received from payment system');
       }
     } catch (error: any) {
+      console.error('Payment error:', error);
       toast({
         title: "Payment Error",
-        description: error.message,
+        description: error.message || "Failed to initialize payment. Please try again or contact support.",
         variant: "destructive",
       });
     } finally {

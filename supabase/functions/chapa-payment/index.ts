@@ -22,6 +22,15 @@ serve(async (req) => {
 
     console.log('Processing payment request:', { orderId, amount, email });
 
+    // Validate input
+    if (!amount || amount <= 0) {
+      throw new Error('Invalid payment amount. Amount must be greater than 0.');
+    }
+
+    if (!email || !fullName || !phone) {
+      throw new Error('Missing required fields: email, fullName, or phone.');
+    }
+
     // Get order details
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
@@ -33,11 +42,27 @@ serve(async (req) => {
       throw new Error('Order not found');
     }
 
+    // Validate order has a price set
+    if (!order.total_price || order.total_price <= 0) {
+      throw new Error('Order price has not been set yet. Please wait for staff to set the price.');
+    }
+
+    // Validate payment amount doesn't exceed remaining balance
+    if (amount > order.remaining_balance) {
+      throw new Error(`Payment amount (${amount} ETB) exceeds remaining balance (${order.remaining_balance} ETB).`);
+    }
+
+    // Validate Chapa API key is configured
+    const chapaKey = Deno.env.get('CHAPA_SECRET_KEY');
+    if (!chapaKey) {
+      throw new Error('Payment system is not configured. Please contact support.');
+    }
+
     // Initialize Chapa payment
     const chapaResponse = await fetch('https://api.chapa.co/v1/transaction/initialize', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('CHAPA_SECRET_KEY')}`,
+        'Authorization': `Bearer ${chapaKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -57,10 +82,16 @@ serve(async (req) => {
       }),
     });
 
+    if (!chapaResponse.ok) {
+      const errorData = await chapaResponse.json();
+      console.error('Chapa API error:', errorData);
+      throw new Error(errorData.message || `Chapa API error: ${chapaResponse.status}`);
+    }
+
     const chapaData = await chapaResponse.json();
     console.log('Chapa response:', chapaData);
 
-    if (chapaData.status === 'success') {
+    if (chapaData.status === 'success' && chapaData.data?.checkout_url) {
       return new Response(
         JSON.stringify({ 
           checkoutUrl: chapaData.data.checkout_url,
@@ -72,7 +103,7 @@ serve(async (req) => {
         }
       );
     } else {
-      throw new Error(chapaData.message || 'Payment initialization failed');
+      throw new Error(chapaData.message || 'Payment initialization failed - no checkout URL returned');
     }
 
   } catch (error) {
