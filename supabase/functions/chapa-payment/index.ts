@@ -31,6 +31,24 @@ serve(async (req) => {
       throw new Error('Missing required fields: email, fullName, or phone.');
     }
 
+    // Format phone number for Chapa (Ethiopian format: +251XXXXXXXXX)
+    let formattedPhone = phone.replace(/\s+/g, ''); // Remove spaces
+    
+    // If phone starts with 0, replace with +251
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '+251' + formattedPhone.substring(1);
+    }
+    // If phone starts with 251 but not +251, add +
+    else if (formattedPhone.startsWith('251') && !formattedPhone.startsWith('+251')) {
+      formattedPhone = '+' + formattedPhone;
+    }
+    // If phone doesn't start with + or 251, assume it needs +251 prefix
+    else if (!formattedPhone.startsWith('+') && !formattedPhone.startsWith('251')) {
+      formattedPhone = '+251' + formattedPhone;
+    }
+
+    console.log('Formatted phone number:', formattedPhone);
+
     // Get order details
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
@@ -71,7 +89,7 @@ serve(async (req) => {
         email: email,
         first_name: fullName.split(' ')[0] || fullName,
         last_name: fullName.split(' ')[1] || '',
-        phone_number: phone,
+        phone_number: formattedPhone,
         tx_ref: `${orderId}-${Date.now()}`,
         callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/chapa-callback`,
         return_url: `${req.headers.get('origin')}/user/orders/${orderId}`,
