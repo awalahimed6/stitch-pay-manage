@@ -23,7 +23,7 @@ const signUpSchema = z.object({
 });
 
 export default function Auth() {
-  const [activeTab, setActiveTab] = useState<"staff" | "customer">("staff");
+  const [activeTab, setActiveTab] = useState<"admin" | "staff" | "customer">("admin");
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,13 +85,21 @@ export default function Auth() {
           .eq("user_id", data.user.id)
           .single();
 
-        if (activeTab === "staff") {
-          // Staff login - check for staff roles
-          if (["admin", "staff", "guard"].includes(roleData?.role || "")) {
+        if (activeTab === "admin") {
+          // Admin login - check for admin role only
+          if (roleData?.role === "admin") {
             navigate("/dashboard");
           } else {
             await supabase.auth.signOut();
-            throw new Error("This login is for staff only. Please use the Customer tab.");
+            throw new Error("This login is for administrators only.");
+          }
+        } else if (activeTab === "staff") {
+          // Staff login - check for staff and guard roles
+          if (["staff", "guard"].includes(roleData?.role || "")) {
+            navigate("/dashboard");
+          } else {
+            await supabase.auth.signOut();
+            throw new Error("This login is for staff only. Please use the appropriate tab.");
           }
         } else {
           // Customer login - check for customer role
@@ -120,11 +128,13 @@ export default function Auth() {
 
         // Assign role based on active tab
         if (data.user) {
+          const assignedRole = activeTab === "admin" ? "admin" : activeTab === "staff" ? "staff" : "customer";
+          
           await supabase
             .from("user_roles")
             .insert({
               user_id: data.user.id,
-              role: activeTab === "staff" ? "staff" : "customer",
+              role: assignedRole as "admin" | "staff" | "customer" | "guard",
             });
         }
 
@@ -133,7 +143,7 @@ export default function Auth() {
           description: "Please check your email to verify your account.",
         });
         
-        navigate(activeTab === "staff" ? "/dashboard" : "/user/dashboard");
+        navigate(activeTab === "customer" ? "/user/dashboard" : "/dashboard");
       }
     } catch (error: any) {
       toast({
@@ -162,8 +172,12 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           {/* User Type Selection */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "staff" | "customer")} className="w-full mb-6">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "admin" | "staff" | "customer")} className="w-full mb-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="admin" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Admin
+              </TabsTrigger>
               <TabsTrigger value="staff" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Staff

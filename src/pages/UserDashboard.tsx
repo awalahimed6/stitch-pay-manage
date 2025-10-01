@@ -185,6 +185,18 @@ export default function UserDashboard() {
                       Due: {new Date(order.due_date).toLocaleDateString()}
                     </p>
                   )}
+                  {order.status !== 'paid' && Number(order.remaining_balance) > 0 && (
+                    <Button 
+                      className="w-full mt-4" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/user/orders/${order.id}`);
+                      }}
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Pay Now
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))
