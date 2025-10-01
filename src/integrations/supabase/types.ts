@@ -166,7 +166,7 @@ export type Database = {
     }
     Enums: {
       order_status: "pending" | "partial" | "paid"
-      payment_method: "cash" | "bank" | "other"
+      payment_method: "cash" | "bank" | "other" | "chapa"
       user_role: "admin" | "staff" | "guard" | "customer"
     }
     CompositeTypes: {
@@ -296,7 +296,7 @@ export const Constants = {
   public: {
     Enums: {
       order_status: ["pending", "partial", "paid"],
-      payment_method: ["cash", "bank", "other"],
+      payment_method: ["cash", "bank", "other", "chapa"],
       user_role: ["admin", "staff", "guard", "customer"],
     },
   },
