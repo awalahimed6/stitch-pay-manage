@@ -98,8 +98,8 @@ serve(async (req) => {
         callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/chapa-callback`,
         return_url: `${req.headers.get('origin')}/user/orders/${orderId}`,
         customization: {
-          title: 'Tailor Shop Payment',
-          description: `Payment for order ${order.customer_name}`,
+          title: 'Tailor Payment', // Max 16 characters per Chapa requirements
+          description: `Order: ${order.customer_name}`,
         },
       }),
     });
