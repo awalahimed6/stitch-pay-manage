@@ -54,6 +54,7 @@ export default function OrderDetail() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -156,6 +157,57 @@ export default function OrderDetail() {
           variant: "destructive",
         });
       }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdatePrice = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrors({});
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const newPrice = parseFloat(formData.get("totalPrice") as string);
+    const dueDate = formData.get("dueDate") as string;
+
+    try {
+      if (newPrice < 0) {
+        setErrors({ totalPrice: "Price must be greater than or equal to 0" });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Calculate how much has been paid
+      const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+      const newBalance = newPrice - totalPaid;
+
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          total_price: newPrice,
+          remaining_balance: newBalance,
+          due_date: dueDate || null,
+          status: newBalance <= 0 ? "paid" : totalPaid > 0 ? "partial" : "pending",
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Price Updated",
+        description: "Order price has been updated successfully.",
+      });
+
+      setIsEditingPrice(false);
+      await fetchOrderDetails();
+    } catch (error) {
+      console.error("Error updating price:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update price. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -272,24 +324,89 @@ export default function OrderDetail() {
 
             <Separator />
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Price</p>
-                <p className="text-2xl font-bold">${Number(order.total_price).toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Remaining</p>
-                <p className="text-2xl font-bold text-destructive">
-                  ${Number(order.remaining_balance).toFixed(2)}
-                </p>
-              </div>
-            </div>
+            {/* Price Section - Staff can edit */}
+            {canManagePayments && isEditingPrice ? (
+              <form onSubmit={handleUpdatePrice} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="totalPrice">Total Price ($)</Label>
+                  <Input
+                    id="totalPrice"
+                    name="totalPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    defaultValue={order.total_price}
+                    required
+                    disabled={isSubmitting}
+                  />
+                  {errors.totalPrice && (
+                    <p className="text-sm text-destructive">{errors.totalPrice}</p>
+                  )}
+                </div>
 
-            {order.due_date && (
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span>Due: {new Date(order.due_date).toLocaleDateString()}</span>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dueDate">Due Date (Optional)</Label>
+                  <Input
+                    id="dueDate"
+                    name="dueDate"
+                    type="date"
+                    defaultValue={order.due_date || ""}
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Saving..." : "Save Price"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsEditingPrice(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Price</p>
+                    <p className="text-2xl font-bold">${Number(order.total_price).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Remaining</p>
+                    <p className="text-2xl font-bold text-destructive">
+                      ${Number(order.remaining_balance).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {canManagePayments && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingPrice(true)}
+                    className="w-full gap-2"
+                  >
+                    <DollarSign className="w-4 h-4" />
+                    {order.total_price === 0 ? "Set Price" : "Edit Price"}
+                  </Button>
+                )}
+
+                {order.due_date && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span>Due: {new Date(order.due_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

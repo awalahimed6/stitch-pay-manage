@@ -222,7 +222,18 @@ export default function UserOrderDetail() {
               </div>
             )}
 
-            {order.status !== 'paid' && (
+            {order.total_price === 0 ? (
+              <Card className="bg-yellow-500/10 border-yellow-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg text-yellow-700 dark:text-yellow-400">
+                    Awaiting Price Quote
+                  </CardTitle>
+                  <CardDescription>
+                    Our staff is reviewing your order and will set a price soon. You'll be able to make payment once the price is confirmed.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            ) : order.status !== 'paid' && Number(order.remaining_balance) > 0 ? (
               <Card className="bg-primary/5">
                 <CardHeader>
                   <CardTitle className="text-lg">Make a Payment</CardTitle>
@@ -253,7 +264,7 @@ export default function UserOrderDetail() {
                   </Button>
                 </CardContent>
               </Card>
-            )}
+            ) : null}
 
             <div>
               <div className="flex justify-between items-center mb-4">
