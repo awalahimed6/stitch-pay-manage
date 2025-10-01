@@ -47,7 +47,7 @@ export default function Auth() {
           .then(({ data: roleData }) => {
             if (roleData?.role === "customer") {
               navigate("/user/dashboard", { replace: true });
-            } else if (["admin", "staff", "guard"].includes(roleData?.role || "")) {
+            } else if (["admin", "staff"].includes(roleData?.role || "")) {
               navigate("/dashboard", { replace: true });
             }
           });
@@ -94,8 +94,8 @@ export default function Auth() {
             throw new Error("This login is for administrators only.");
           }
         } else if (activeTab === "staff") {
-          // Staff login - check for staff and guard roles
-          if (["staff", "guard"].includes(roleData?.role || "")) {
+          // Staff login - check for staff role
+          if (roleData?.role === "staff") {
             navigate("/dashboard");
           } else {
             await supabase.auth.signOut();
