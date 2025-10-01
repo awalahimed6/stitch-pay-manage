@@ -28,6 +28,7 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
           total_price: number
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -42,6 +43,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           total_price: number
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -56,6 +58,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           total_price?: number
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -164,7 +167,7 @@ export type Database = {
     Enums: {
       order_status: "pending" | "partial" | "paid"
       payment_method: "cash" | "bank" | "other"
-      user_role: "admin" | "staff" | "guard"
+      user_role: "admin" | "staff" | "guard" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -294,7 +297,7 @@ export const Constants = {
     Enums: {
       order_status: ["pending", "partial", "paid"],
       payment_method: ["cash", "bank", "other"],
-      user_role: ["admin", "staff", "guard"],
+      user_role: ["admin", "staff", "guard", "customer"],
     },
   },
 } as const
