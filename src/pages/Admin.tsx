@@ -50,7 +50,7 @@ interface UserWithRole {
   id: string;
   full_name: string;
   phone: string | null;
-  role: "admin" | "staff" | "guard";
+  role: "admin" | "staff" | "customer";
   created_at: string;
 }
 
@@ -94,7 +94,7 @@ export default function Admin() {
     password: "",
     full_name: "",
     phone: "",
-    role: "staff" as "admin" | "staff" | "guard",
+    role: "staff" as "admin" | "staff" | "customer",
   });
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export default function Admin() {
           full_name: profile.full_name,
           phone: profile.phone,
           created_at: profile.created_at,
-          role: (roles?.find((r) => r.user_id === profile.id)?.role || "staff") as "admin" | "staff" | "guard",
+          role: (roles?.find((r) => r.user_id === profile.id)?.role || "staff") as "admin" | "staff" | "customer",
         })) || [];
 
       setUsers(usersWithRoles);
@@ -207,7 +207,7 @@ export default function Admin() {
     }
   };
 
-  const handleChangeRole = async (userId: string, newRole: "admin" | "staff" | "guard") => {
+  const handleChangeRole = async (userId: string, newRole: "admin" | "staff" | "customer") => {
     try {
       await supabase.from("user_roles").update({ role: newRole }).eq("user_id", userId);
 
@@ -377,7 +377,7 @@ export default function Admin() {
                           <SelectContent>
                             <SelectItem value="staff">Staff</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="guard">Guard</SelectItem>
+                            <SelectItem value="customer">Customer</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -409,7 +409,7 @@ export default function Admin() {
                         <TableCell>
                           <Select
                             value={user.role}
-                            onValueChange={(value) => handleChangeRole(user.id, value as "admin" | "staff" | "guard")}
+                            onValueChange={(value) => handleChangeRole(user.id, value as "admin" | "staff" | "customer")}
                           >
                             <SelectTrigger className="w-32">
                               <Badge variant="secondary" className={getRoleBadgeColor(user.role)}>
@@ -419,7 +419,7 @@ export default function Admin() {
                             <SelectContent>
                               <SelectItem value="staff">Staff</SelectItem>
                               <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="guard">Guard</SelectItem>
+                              <SelectItem value="customer">Customer</SelectItem>
                             </SelectContent>
                           </Select>
                         </TableCell>

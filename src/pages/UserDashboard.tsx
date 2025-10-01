@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut, Package, CreditCard, CheckCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { LogOut, Package, CreditCard, CheckCircle, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import UserOrderForm from "@/components/UserOrderForm";
 
 interface Order {
   id: string;
@@ -23,6 +25,8 @@ export default function UserDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState("");
+  const [userId, setUserId] = useState("");
+  const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -35,11 +39,12 @@ export default function UserDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        navigate("/user/auth");
+        navigate("/auth");
         return;
       }
 
       setUserEmail(user.email || "");
+      setUserId(user.id);
 
       const { data, error } = await supabase
         .from("orders")
@@ -62,7 +67,12 @@ export default function UserDashboard() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/user/auth");
+    navigate("/auth");
+  };
+
+  const handleOrderSuccess = () => {
+    setIsOrderFormOpen(false);
+    fetchUserOrders();
   };
 
   const getStatusColor = (status: string) => {
@@ -104,6 +114,25 @@ export default function UserDashboard() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Dashboard Overview</h2>
+          <Dialog open={isOrderFormOpen} onOpenChange={setIsOrderFormOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Order Request
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <UserOrderForm 
+                userId={userId} 
+                userEmail={userEmail}
+                onSuccess={handleOrderSuccess}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
