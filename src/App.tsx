@@ -15,7 +15,7 @@ import NotFound from "./pages/NotFound";
 import UserAuth from "./pages/UserAuth";
 import UserDashboard from "./pages/UserDashboard";
 import UserOrderDetail from "./pages/UserOrderDetail";
-import CustomerLanding from "./pages/CustomerLanding";
+
 
 const queryClient = new QueryClient();
 
@@ -45,7 +45,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<CustomerLanding />} />
+            <Route path="/" element={<Navigate to="/user/auth" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/dashboard"
