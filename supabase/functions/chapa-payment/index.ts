@@ -105,7 +105,14 @@ serve(async (req) => {
     });
 
     if (!chapaResponse.ok) {
-      const errorData = await chapaResponse.json();
+      const errorText = await chapaResponse.text();
+      console.error('Chapa API error response:', errorText);
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { message: errorText };
+      }
       console.error('Chapa API error:', errorData);
       throw new Error(errorData.message || `Chapa API error: ${chapaResponse.status}`);
     }
