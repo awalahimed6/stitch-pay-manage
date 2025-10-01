@@ -31,23 +31,27 @@ serve(async (req) => {
       throw new Error('Missing required fields: email, fullName, or phone.');
     }
 
-    // Format phone number for Chapa (Ethiopian format: +251XXXXXXXXX)
-    let formattedPhone = phone.replace(/\s+/g, ''); // Remove spaces
+    // Format phone number for Chapa (Ethiopian format: 09XXXXXXXX or 07XXXXXXXX - 10 digits)
+    let formattedPhone = phone.replace(/\s+/g, ''); // Remove all spaces
     
-    // If phone starts with 0, replace with +251
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = '+251' + formattedPhone.substring(1);
+    // Remove country code prefix if present
+    if (formattedPhone.startsWith('+251')) {
+      formattedPhone = '0' + formattedPhone.substring(4);
+    } else if (formattedPhone.startsWith('251')) {
+      formattedPhone = '0' + formattedPhone.substring(3);
     }
-    // If phone starts with 251 but not +251, add +
-    else if (formattedPhone.startsWith('251') && !formattedPhone.startsWith('+251')) {
-      formattedPhone = '+' + formattedPhone;
+    
+    // Ensure it starts with 0
+    if (!formattedPhone.startsWith('0')) {
+      formattedPhone = '0' + formattedPhone;
     }
-    // If phone doesn't start with + or 251, assume it needs +251 prefix
-    else if (!formattedPhone.startsWith('+') && !formattedPhone.startsWith('251')) {
-      formattedPhone = '+251' + formattedPhone;
+    
+    // Validate it's 10 digits
+    if (!/^0[79]\d{8}$/.test(formattedPhone)) {
+      throw new Error(`Invalid phone number format. Phone must be in format 09XXXXXXXX or 07XXXXXXXX. Received: ${formattedPhone}`);
     }
 
-    console.log('Formatted phone number:', formattedPhone);
+    console.log('Formatted phone number for Chapa:', formattedPhone);
 
     // Get order details
     const { data: order, error: orderError } = await supabaseClient
