@@ -12,6 +12,7 @@ import OrderDetail from "./pages/OrderDetail";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 
 import UserDashboard from "./pages/UserDashboard";
 import UserOrderDetail from "./pages/UserOrderDetail";
@@ -45,7 +46,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Auth />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/dashboard"
