@@ -96,7 +96,7 @@ serve(async (req) => {
         phone_number: formattedPhone,
         tx_ref: `${orderId}-${Date.now()}`,
         callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/chapa-callback`,
-        return_url: `${req.headers.get('origin')}/user/orders/${orderId}`,
+        return_url: `${req.headers.get('origin')}/user/dashboard`,
         customization: {
           title: 'Tailor Payment', // Max 16 characters per Chapa requirements
           description: `Order for ${order.customer_name.replace(/[^a-zA-Z0-9\s\-_.]/g, '')}`.slice(0, 255), // Only letters, numbers, hyphens, underscores, spaces, and dots
