@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LayoutDashboard, ShoppingBag, User, LogOut, Scissors } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, User, LogOut, Scissors, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -30,6 +30,7 @@ export default function Layout({ children }: LayoutProps) {
   const navItems = [
     { path: "/", label: "Dashboard", icon: LayoutDashboard },
     { path: "/orders", label: "Orders", icon: ShoppingBag },
+    ...(userRole === "admin" ? [{ path: "/admin", label: "Admin", icon: Shield }] : []),
   ];
 
   return (
