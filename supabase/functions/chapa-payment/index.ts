@@ -99,7 +99,7 @@ serve(async (req) => {
         return_url: `${req.headers.get('origin')}/user/orders/${orderId}`,
         customization: {
           title: 'Tailor Payment', // Max 16 characters per Chapa requirements
-          description: `Order: ${order.customer_name}`,
+          description: `Order for ${order.customer_name.replace(/[^a-zA-Z0-9\s\-_.]/g, '')}`.slice(0, 255), // Only letters, numbers, hyphens, underscores, spaces, and dots
         },
       }),
     });
