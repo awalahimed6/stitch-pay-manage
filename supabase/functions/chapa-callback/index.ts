@@ -58,8 +58,11 @@ serve(async (req) => {
     console.log('Verification response:', verifyData);
 
     if (verifyData.status === 'success' && verifyData.data?.status === 'success') {
-      // Extract order ID from tx_ref (format: orderId-timestamp)
-      const orderId = tx_ref.split('-')[0];
+      // Extract order ID from tx_ref (format: uuid-timestamp)
+      // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-timestamp
+      // We need to get everything before the last hyphen (which is the timestamp)
+      const lastHyphenIndex = tx_ref.lastIndexOf('-');
+      const orderId = tx_ref.substring(0, lastHyphenIndex);
       
       // Get order details
       const { data: order, error: orderError } = await supabaseClient
