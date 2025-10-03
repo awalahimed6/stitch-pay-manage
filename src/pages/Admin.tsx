@@ -289,10 +289,14 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+        <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
           <TabsTrigger value="users" className="gap-2">
             <Users className="w-4 h-4" />
             Users
+          </TabsTrigger>
+          <TabsTrigger value="deliverers" className="gap-2">
+            <Users className="w-4 h-4" />
+            Deliverers
           </TabsTrigger>
           <TabsTrigger value="orders" className="gap-2">
             <ShoppingBag className="w-4 h-4" />
@@ -303,6 +307,29 @@ export default function Admin() {
             Reports
           </TabsTrigger>
         </TabsList>
+
+        {/* Deliverers Tab */}
+        <TabsContent value="deliverers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Deliverer Management</CardTitle>
+                  <CardDescription>Manage deliverers and their assignments</CardDescription>
+                </div>
+                <Button onClick={() => navigate("/deliverers")} className="gap-2">
+                  <UserPlus className="w-4 h-4" />
+                  Manage Deliverers
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center py-8">
+                Click "Manage Deliverers" to view, add, edit, or deactivate deliverers.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-4">
