@@ -38,6 +38,90 @@ export type Database = {
         }
         Relationships: []
       }
+      deliverers: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          phone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      deliveries: {
+        Row: {
+          assigned_at: string
+          completed_at: string | null
+          created_at: string
+          deliverer_id: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string
+          completed_at?: string | null
+          created_at?: string
+          deliverer_id?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string
+          completed_at?: string | null
+          created_at?: string
+          deliverer_id?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_deliverer_id_fkey"
+            columns: ["deliverer_id"]
+            isOneToOne: false
+            referencedRelation: "deliverers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string
@@ -191,7 +275,7 @@ export type Database = {
     Enums: {
       order_status: "pending" | "partial" | "paid"
       payment_method: "cash" | "bank" | "other" | "chapa"
-      user_role: "admin" | "staff" | "guard" | "customer"
+      user_role: "admin" | "staff" | "guard" | "customer" | "deliverer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -321,7 +405,7 @@ export const Constants = {
     Enums: {
       order_status: ["pending", "partial", "paid"],
       payment_method: ["cash", "bank", "other", "chapa"],
-      user_role: ["admin", "staff", "guard", "customer"],
+      user_role: ["admin", "staff", "guard", "customer", "deliverer"],
     },
   },
 } as const

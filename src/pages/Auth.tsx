@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Scissors, Users, User } from "lucide-react";
+import { Scissors, Users, User, Truck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
@@ -23,7 +23,7 @@ const signUpSchema = z.object({
 });
 
 export default function Auth() {
-  const [activeTab, setActiveTab] = useState<"admin" | "staff" | "customer">("admin");
+  const [activeTab, setActiveTab] = useState<"admin" | "staff" | "customer" | "deliverer">("admin");
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,6 +47,8 @@ export default function Auth() {
           .then(({ data: roleData }) => {
             if (roleData?.role === "customer") {
               navigate("/user/dashboard", { replace: true });
+            } else if (roleData?.role === "deliverer") {
+              navigate("/deliverer/dashboard", { replace: true });
             } else if (["admin", "staff"].includes(roleData?.role || "")) {
               navigate("/dashboard", { replace: true });
             }
@@ -100,6 +102,14 @@ export default function Auth() {
           } else {
             await supabase.auth.signOut();
             throw new Error("This login is for staff only. Please use the appropriate tab.");
+          }
+        } else if (activeTab === "deliverer") {
+          // Deliverer login - check for deliverer role
+          if (roleData?.role === "deliverer") {
+            navigate("/deliverer/dashboard");
+          } else {
+            await supabase.auth.signOut();
+            throw new Error("This login is for deliverers only. Please use the appropriate tab.");
           }
         } else {
           // Customer login - check for customer role
@@ -172,25 +182,29 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           {/* User Type Selection */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "admin" | "staff" | "customer")} className="w-full mb-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="admin" className="flex items-center gap-2">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "admin" | "staff" | "customer" | "deliverer")} className="w-full mb-6">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="admin" className="flex items-center gap-1 text-xs sm:text-sm">
                 <Users className="h-4 w-4" />
-                Admin
+                <span className="hidden sm:inline">Admin</span>
               </TabsTrigger>
-              <TabsTrigger value="staff" className="flex items-center gap-2">
+              <TabsTrigger value="staff" className="flex items-center gap-1 text-xs sm:text-sm">
                 <Users className="h-4 w-4" />
-                Staff
+                <span className="hidden sm:inline">Staff</span>
               </TabsTrigger>
-              <TabsTrigger value="customer" className="flex items-center gap-2">
+              <TabsTrigger value="deliverer" className="flex items-center gap-1 text-xs sm:text-sm">
+                <Truck className="h-4 w-4" />
+                <span className="hidden sm:inline">Deliverer</span>
+              </TabsTrigger>
+              <TabsTrigger value="customer" className="flex items-center gap-1 text-xs sm:text-sm">
                 <User className="h-4 w-4" />
-                Customer
+                <span className="hidden sm:inline">Customer</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
           {/* Login/Signup Toggle */}
-          {activeTab !== "admin" && (
+          {activeTab !== "admin" && activeTab !== "deliverer" && (
             <div className="flex justify-center mb-6">
               <div className="inline-flex rounded-lg border p-1">
                 <button
@@ -218,6 +232,12 @@ export default function Auth() {
           {activeTab === "admin" && (
             <div className="text-center mb-6">
               <p className="text-sm text-muted-foreground">Admin Login Only</p>
+            </div>
+          )}
+          
+          {activeTab === "deliverer" && (
+            <div className="text-center mb-6">
+              <p className="text-sm text-muted-foreground">Deliverer Login Only</p>
             </div>
           )}
 

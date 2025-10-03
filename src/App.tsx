@@ -16,6 +16,10 @@ import Landing from "./pages/Landing";
 
 import UserDashboard from "./pages/UserDashboard";
 import UserOrderDetail from "./pages/UserOrderDetail";
+import DelivererManagement from "./pages/DelivererManagement";
+import DelivererDashboard from "./pages/DelivererDashboard";
+import DeliveryDetail from "./pages/DeliveryDetail";
+import DeliveryHistory from "./pages/DeliveryHistory";
 
 
 const queryClient = new QueryClient();
@@ -92,6 +96,42 @@ const App = () => (
             {/* User routes */}
             <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/user/orders/:id" element={<UserOrderDetail />} />
+            
+            {/* Deliverer Management (Admin/Staff) */}
+            <Route
+              path="/deliverers"
+              element={
+                <ProtectedRoute>
+                  <DelivererManagement />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Deliverer routes */}
+            <Route
+              path="/deliverer/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DelivererDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/deliverer/deliveries/:id"
+              element={
+                <ProtectedRoute>
+                  <DeliveryDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/deliverer/history"
+              element={
+                <ProtectedRoute>
+                  <DeliveryHistory />
+                </ProtectedRoute>
+              }
+            />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
