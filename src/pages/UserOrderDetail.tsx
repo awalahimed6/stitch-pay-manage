@@ -22,6 +22,10 @@ interface Order {
   created_at: string;
   due_date: string | null;
   notes: string | null;
+  delivery_required?: boolean;
+  delivery_address?: any;
+  delivery_fee?: number;
+  delivery_status?: string;
 }
 
 interface Payment {
@@ -240,6 +244,16 @@ export default function UserOrderDetail() {
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Payment Summary</h3>
+                {order.delivery_required && order.delivery_fee && order.delivery_fee > 0 && (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Item Price: <span className="font-bold">ETB {(Number(order.total_price) - Number(order.delivery_fee)).toFixed(2)}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Delivery Fee: <span className="font-bold">ETB {Number(order.delivery_fee).toFixed(2)}</span>
+                    </p>
+                  </>
+                )}
                 <p className="text-sm text-muted-foreground">
                   Total Price: <span className="font-bold">ETB {Number(order.total_price).toFixed(2)}</span>
                 </p>
@@ -249,6 +263,26 @@ export default function UserOrderDetail() {
                 </p>
               </div>
             </div>
+
+            {order.delivery_required && order.delivery_address && (
+              <div>
+                <h3 className="font-semibold mb-2">Delivery Information</h3>
+                <p className="text-sm text-muted-foreground">
+                  Address: {order.delivery_address.street}, House {order.delivery_address.houseNumber}, {order.delivery_address.city}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Delivery Status:{" "}
+                  <Badge className={
+                    order.delivery_status === 'delivered' ? 'bg-green-500' :
+                    order.delivery_status === 'out_for_delivery' ? 'bg-blue-500' :
+                    order.delivery_status === 'cancelled' ? 'bg-red-500' :
+                    'bg-gray-500'
+                  }>
+                    {(order.delivery_status || 'pending').replace(/_/g, ' ').toUpperCase()}
+                  </Badge>
+                </p>
+              </div>
+            )}
 
             {order.notes && (
               <div>

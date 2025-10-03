@@ -127,6 +127,10 @@ export type Database = {
           created_at: string
           created_by: string
           customer_name: string
+          delivery_address: Json | null
+          delivery_fee: number | null
+          delivery_required: boolean | null
+          delivery_status: string | null
           due_date: string | null
           id: string
           item_description: string
@@ -142,6 +146,10 @@ export type Database = {
           created_at?: string
           created_by: string
           customer_name: string
+          delivery_address?: Json | null
+          delivery_fee?: number | null
+          delivery_required?: boolean | null
+          delivery_status?: string | null
           due_date?: string | null
           id?: string
           item_description: string
@@ -157,6 +165,10 @@ export type Database = {
           created_at?: string
           created_by?: string
           customer_name?: string
+          delivery_address?: Json | null
+          delivery_fee?: number | null
+          delivery_required?: boolean | null
+          delivery_status?: string | null
           due_date?: string | null
           id?: string
           item_description?: string
