@@ -314,6 +314,11 @@ export default function OrderDetail() {
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">Item Description</p>
               <p className="text-sm">{order.item_description}</p>
+              {order.delivery_required && order.delivery_address && (
+                <p className="text-sm mt-2 text-primary font-medium">
+                  📍 Delivery to: {order.delivery_address.street}, House {order.delivery_address.houseNumber}, {order.delivery_address.city}
+                </p>
+              )}
             </div>
 
             {order.notes && (

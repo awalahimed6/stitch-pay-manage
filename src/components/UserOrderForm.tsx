@@ -100,6 +100,22 @@ export default function UserOrderForm({ userId, userEmail, onSuccess }: UserOrde
 
       if (orderError) throw orderError;
 
+      // If delivery is required, create a delivery record
+      if (deliveryRequired && orderData) {
+        const { error: deliveryError } = await supabase
+          .from("deliveries")
+          .insert({
+            order_id: orderData.id,
+            status: 'pending',
+            notes: 'Auto-created from customer order request',
+          });
+
+        if (deliveryError) {
+          console.error('Error creating delivery:', deliveryError);
+          // Don't fail the order creation if delivery record fails
+        }
+      }
+
       toast({
         title: "Order Request Submitted",
         description: "Your order has been submitted. Staff will contact you with pricing details.",

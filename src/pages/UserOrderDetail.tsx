@@ -270,8 +270,8 @@ export default function UserOrderDetail() {
                 <p className="text-sm text-muted-foreground">
                   Address: {order.delivery_address.street}, House {order.delivery_address.houseNumber}, {order.delivery_address.city}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  Delivery Status:{" "}
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-sm text-muted-foreground">Delivery Status:</span>
                   <Badge className={
                     order.delivery_status === 'delivered' ? 'bg-green-500' :
                     order.delivery_status === 'out_for_delivery' ? 'bg-blue-500' :
@@ -280,7 +280,7 @@ export default function UserOrderDetail() {
                   }>
                     {(order.delivery_status || 'pending').replace(/_/g, ' ').toUpperCase()}
                   </Badge>
-                </p>
+                </div>
               </div>
             )}
 

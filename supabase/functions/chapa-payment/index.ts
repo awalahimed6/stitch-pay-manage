@@ -37,7 +37,7 @@ serve(async (req) => {
     }
 
     // Format phone number for Chapa (Ethiopian format: 09XXXXXXXX or 07XXXXXXXX - 10 digits)
-    let formattedPhone = phone.replace(/\s+/g, ''); // Remove all spaces
+    let formattedPhone = phone.replace(/[\s\-\(\)]/g, ''); // Remove spaces, dashes, parentheses
     
     // Remove country code prefix if present
     if (formattedPhone.startsWith('+251')) {
@@ -51,7 +51,7 @@ serve(async (req) => {
       formattedPhone = '0' + formattedPhone;
     }
     
-    // Validate it's 10 digits
+    // Validate it's 10 digits and starts with 09 or 07
     if (!/^0[79]\d{8}$/.test(formattedPhone)) {
       throw new Error(`Invalid phone number format. Phone must be in format 09XXXXXXXX or 07XXXXXXXX. Received: ${formattedPhone}`);
     }
