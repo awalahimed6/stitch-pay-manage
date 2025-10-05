@@ -4,8 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Package, TruckIcon, CheckCircle, XCircle } from "lucide-react";
+import { Package, TruckIcon, CheckCircle, XCircle, Power } from "lucide-react";
 
 interface Delivery {
   id: string;
@@ -27,6 +30,8 @@ export default function DelivererDashboard() {
   const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(false);
+  const [delivererId, setDelivererId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     pending: 0,
     outForDelivery: 0,
@@ -50,11 +55,14 @@ export default function DelivererDashboard() {
       // First get the deliverer record
       const { data: delivererData, error: delivererError } = await supabase
         .from("deliverers")
-        .select("id")
+        .select("id, is_online")
         .eq("user_id", user?.id)
         .single();
 
       if (delivererError) throw delivererError;
+
+      setDelivererId(delivererData.id);
+      setIsOnline(delivererData.is_online);
 
       // Then get all deliveries for this deliverer
       const { data, error } = await supabase
@@ -91,6 +99,25 @@ export default function DelivererDashboard() {
     }
   };
 
+  const toggleOnlineStatus = async () => {
+    if (!delivererId) return;
+    
+    try {
+      const newStatus = !isOnline;
+      const { error } = await supabase
+        .from("deliverers")
+        .update({ is_online: newStatus })
+        .eq("id", delivererId);
+
+      if (error) throw error;
+
+      setIsOnline(newStatus);
+      toast.success(newStatus ? "You are now online" : "You are now offline");
+    } catch (error: any) {
+      toast.error("Error", { description: error.message });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { variant: "secondary" as const, label: "Pending" },
@@ -117,9 +144,26 @@ export default function DelivererDashboard() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">My Deliveries</h1>
-        <p className="text-muted-foreground">Manage your delivery assignments</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">My Deliveries</h1>
+          <p className="text-muted-foreground">Manage your delivery assignments</p>
+        </div>
+        <Card className="p-4">
+          <div className="flex items-center space-x-4">
+            <Power className={`h-5 w-5 ${isOnline ? 'text-green-500' : 'text-gray-400'}`} />
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="online-status"
+                checked={isOnline}
+                onCheckedChange={toggleOnlineStatus}
+              />
+              <Label htmlFor="online-status" className="font-semibold">
+                {isOnline ? 'Online' : 'Offline'}
+              </Label>
+            </div>
+          </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">

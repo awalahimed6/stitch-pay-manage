@@ -33,6 +33,19 @@ interface Order {
   delivery_status?: string;
 }
 
+interface Deliverer {
+  id: string;
+  full_name: string;
+  is_active: boolean;
+  is_online: boolean;
+}
+
+interface Delivery {
+  id: string;
+  deliverer_id: string | null;
+  status: string;
+}
+
 interface Payment {
   id: string;
   payer_name: string;
@@ -56,6 +69,9 @@ export default function OrderDetail() {
   const { toast } = useToast();
   const [order, setOrder] = useState<Order | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [deliverers, setDeliverers] = useState<Deliverer[]>([]);
+  const [currentDelivery, setCurrentDelivery] = useState<Delivery | null>(null);
+  const [selectedDelivererId, setSelectedDelivererId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditingPrice, setIsEditingPrice] = useState(false);
@@ -64,6 +80,10 @@ export default function OrderDetail() {
   useEffect(() => {
     if (id) {
       fetchOrderDetails();
+      if (canManagePayments) {
+        fetchDeliverers();
+        fetchCurrentDelivery();
+      }
     }
   }, [id]);
 
@@ -95,6 +115,40 @@ export default function OrderDetail() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDeliverers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("deliverers")
+        .select("id, full_name, is_active, is_online")
+        .eq("is_active", true)
+        .order("is_online", { ascending: false })
+        .order("full_name");
+
+      if (error) throw error;
+      setDeliverers(data || []);
+    } catch (error) {
+      console.error("Error fetching deliverers:", error);
+    }
+  };
+
+  const fetchCurrentDelivery = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("deliveries")
+        .select("id, deliverer_id, status")
+        .eq("order_id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setCurrentDelivery(data);
+        setSelectedDelivererId(data.deliverer_id || "");
+      }
+    } catch (error) {
+      console.error("Error fetching current delivery:", error);
     }
   };
 
@@ -198,6 +252,11 @@ export default function OrderDetail() {
 
       if (error) throw error;
 
+      // Auto-assign deliverer if delivery is required and deliverer is selected
+      if (order?.delivery_required && selectedDelivererId) {
+        await handleAssignDeliverer();
+      }
+
       toast({
         title: "Price Updated",
         description: "Order price has been updated successfully.",
@@ -214,6 +273,50 @@ export default function OrderDetail() {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAssignDeliverer = async () => {
+    if (!selectedDelivererId || !order) return;
+
+    try {
+      if (currentDelivery) {
+        // Update existing delivery
+        const { error } = await supabase
+          .from("deliveries")
+          .update({
+            deliverer_id: selectedDelivererId,
+            status: "pending",
+          })
+          .eq("id", currentDelivery.id);
+
+        if (error) throw error;
+      } else {
+        // Create new delivery
+        const { error } = await supabase
+          .from("deliveries")
+          .insert({
+            order_id: id,
+            deliverer_id: selectedDelivererId,
+            status: "pending",
+          });
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Deliverer Assigned",
+        description: "Deliverer has been assigned to this order.",
+      });
+
+      await fetchCurrentDelivery();
+    } catch (error) {
+      console.error("Error assigning deliverer:", error);
+      toast({
+        title: "Error",
+        description: "Failed to assign deliverer.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -392,13 +495,38 @@ export default function OrderDetail() {
                   />
                 </div>
 
+                {order.delivery_required && (
+                  <div className="space-y-2">
+                    <Label htmlFor="deliverer">Assign Deliverer</Label>
+                    <Select
+                      value={selectedDelivererId}
+                      onValueChange={setSelectedDelivererId}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a deliverer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {deliverers.map((deliverer) => (
+                          <SelectItem key={deliverer.id} value={deliverer.id}>
+                            {deliverer.full_name} {deliverer.is_online ? '🟢' : '⚫'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      🟢 = Online  ⚫ = Offline
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <Button
                     type="submit"
                     className="flex-1"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Saving..." : "Save Price"}
+                    {isSubmitting ? "Saving..." : order.delivery_required && selectedDelivererId ? "Save & Assign Deliverer" : "Save Price"}
                   </Button>
                   <Button
                     type="button"

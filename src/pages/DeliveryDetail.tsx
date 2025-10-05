@@ -26,6 +26,8 @@ interface Delivery {
     remaining_balance: number;
     due_date: string | null;
     notes: string | null;
+    delivery_address?: any;
+    delivery_fee?: number;
   };
 }
 
@@ -61,7 +63,9 @@ export default function DeliveryDetail() {
             total_price,
             remaining_balance,
             due_date,
-            notes
+            notes,
+            delivery_address,
+            delivery_fee
           )
         `)
         .eq("id", id)
@@ -186,6 +190,19 @@ export default function DeliveryDetail() {
               <Label className="text-muted-foreground">Item Description</Label>
               <p>{delivery.orders.item_description}</p>
             </div>
+            {delivery.orders.delivery_address && (
+              <div>
+                <Label className="text-muted-foreground flex items-center">
+                  <MapPin className="mr-1 h-4 w-4" /> Delivery Address
+                </Label>
+                <p className="font-semibold">
+                  {delivery.orders.delivery_address.street}, House {delivery.orders.delivery_address.houseNumber}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {delivery.orders.delivery_address.city}
+                </p>
+              </div>
+            )}
             {delivery.orders.notes && (
               <div>
                 <Label className="text-muted-foreground">Order Notes</Label>
@@ -219,6 +236,12 @@ export default function DeliveryDetail() {
                 {delivery.orders.remaining_balance} ETB
               </p>
             </div>
+            {delivery.orders.delivery_fee && delivery.orders.delivery_fee > 0 && (
+              <div className="flex justify-between">
+                <Label className="text-muted-foreground">Delivery Fee</Label>
+                <p className="font-semibold">{delivery.orders.delivery_fee} ETB</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -242,7 +265,7 @@ export default function DeliveryDetail() {
           <Card>
             <CardHeader>
               <CardTitle>Update Status</CardTitle>
-              <CardDescription>Change the delivery status</CardDescription>
+              <CardDescription>Accept order and change delivery status</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {delivery.status === "pending" && (
@@ -251,7 +274,7 @@ export default function DeliveryDetail() {
                   onClick={() => updateDeliveryStatus("out_for_delivery")}
                   disabled={updating}
                 >
-                  Start Delivery
+                  Accept & Start Delivery
                 </Button>
               )}
               {delivery.status === "out_for_delivery" && (

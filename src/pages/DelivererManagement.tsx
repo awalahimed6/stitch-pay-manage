@@ -20,6 +20,7 @@ interface Deliverer {
   phone: string;
   email: string;
   is_active: boolean;
+  is_online: boolean;
   created_at: string;
 }
 
@@ -310,6 +311,7 @@ export default function DelivererManagement() {
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Online</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -327,6 +329,12 @@ export default function DelivererManagement() {
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className={`h-2 w-2 rounded-full ${deliverer.is_online ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        <span className="text-sm">{deliverer.is_online ? 'Online' : 'Offline'}</span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
