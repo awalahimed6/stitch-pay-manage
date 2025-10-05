@@ -27,6 +27,10 @@ interface Order {
   due_date: string | null;
   notes: string | null;
   created_at: string;
+  delivery_required?: boolean;
+  delivery_address?: any;
+  delivery_fee?: number;
+  delivery_status?: string;
 }
 
 interface Payment {
@@ -318,6 +322,34 @@ export default function OrderDetail() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
                   <p className="text-sm">{order.notes}</p>
+                </div>
+              </>
+            )}
+
+            {order.delivery_required && order.delivery_address && (
+              <>
+                <Separator />
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Delivery Information</p>
+                  <p className="text-sm">
+                    {order.delivery_address.street}, House {order.delivery_address.houseNumber}, {order.delivery_address.city}
+                  </p>
+                  {order.delivery_fee && order.delivery_fee > 0 && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Delivery Fee: ETB {Number(order.delivery_fee).toFixed(2)}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-sm text-muted-foreground">Status:</span>
+                    <Badge className={
+                      order.delivery_status === 'delivered' ? 'bg-green-500' :
+                      order.delivery_status === 'out_for_delivery' ? 'bg-blue-500' :
+                      order.delivery_status === 'cancelled' ? 'bg-red-500' :
+                      'bg-gray-500'
+                    }>
+                      {(order.delivery_status || 'pending').replace(/_/g, ' ').toUpperCase()}
+                    </Badge>
+                  </div>
                 </div>
               </>
             )}
