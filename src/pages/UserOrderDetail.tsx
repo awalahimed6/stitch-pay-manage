@@ -54,6 +54,19 @@ export default function UserOrderDetail() {
     fetchOrderDetails();
   }, [id]);
 
+  // Handle return from payment gateway
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      toast({ title: 'Payment Successful', description: 'Your payment was received.' });
+      fetchOrderDetails();
+      params.delete('payment');
+      const url = new URL(window.location.href);
+      url.search = params.toString();
+      window.history.replaceState(null, '', url.toString());
+    }
+  }, []);
+
   const fetchOrderDetails = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -151,6 +164,8 @@ export default function UserOrderDetail() {
           email: email,
           fullName: fullName,
           phone: phone,
+          // After payment, return to this order detail page
+          returnUrl: `${window.location.origin}/user/orders/${order.id}?payment=success`,
         },
       });
 
