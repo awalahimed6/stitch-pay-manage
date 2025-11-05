@@ -43,7 +43,7 @@ export default function Auth() {
           .from("user_roles")
           .select("role")
           .eq("user_id", session.user.id)
-          .single()
+          .maybeSingle()
           .then(({ data: roleData }) => {
             if (roleData?.role === "customer") {
               navigate("/user/dashboard", { replace: true });
@@ -80,12 +80,25 @@ export default function Auth() {
 
         if (error) throw error;
 
-        // Check user role
-        const { data: roleData } = await supabase
+        // Check user role - wait a bit for role to be available
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const { data: roleData, error: roleError } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", data.user.id)
-          .single();
+          .maybeSingle();
+        
+        if (roleError) {
+          console.error("Error fetching role:", roleError);
+          await supabase.auth.signOut();
+          throw new Error("Unable to verify user role. Please try again.");
+        }
+        
+        if (!roleData) {
+          await supabase.auth.signOut();
+          throw new Error("No role assigned to this user. Please contact support.");
+        }
 
         if (activeTab === "admin") {
           // Admin login - check for admin role only
@@ -140,12 +153,22 @@ export default function Auth() {
         if (data.user) {
           const assignedRole = activeTab === "staff" ? "staff" : "customer";
           
-          await supabase
+          const { error: roleInsertError } = await supabase
             .from("user_roles")
             .insert({
               user_id: data.user.id,
               role: assignedRole,
             });
+          
+          if (roleInsertError) {
+            console.error("Error assigning role:", roleInsertError);
+            // Still show success but log the error
+            toast({
+              title: "Warning",
+              description: "Account created but role assignment pending. Please contact support if issues persist.",
+              variant: "destructive",
+            });
+          }
         }
 
         toast({
